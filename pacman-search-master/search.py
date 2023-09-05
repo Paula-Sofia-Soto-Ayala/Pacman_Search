@@ -89,50 +89,126 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    # Obtiene el estado inicial del problema
     start_state = problem.getStartState()
+    # Crea una pila vacía para almacenar los estados a visitar
     stack = util.Stack()
+    # Apila el estado inicial
     stack.push(start_state)
 
+    # Crea un diccionario vacío para almacenar el camino inverso
     back_track = {}
 
+    # Crea un conjunto vacío para almacenar los estados visitados
     states_visited = {start_state}
 
+    # Crea una variable para almacenar el estado objetivo
     goal_state = None
 
+    # Repite hasta que la pila esté vacía o se encuentre el estado objetivo
     while not stack.isEmpty() and goal_state is None:
-        curr_state = stack.pop()
+      # Desapila el último estado de la pila
+      curr_state = stack.pop()
 
-        successors = problem.getSuccessors(curr_state)
-        for next_state, action, _ in successors:
-            if next_state in states_visited:
-                continue
-            states_visited.add(next_state)
-            stack.push(next_state)
-            back_track[next_state] = {curr_state, action}
+      # Obtiene los sucesores del estado actual
+      successors = problem.getSuccessors(curr_state)
+      # Recorre los sucesores del estado actual
+      for next_state, action, _ in successors:
+        # Si el sucesor ya está visitado, lo ignora
+        if next_state in states_visited:
+          continue
+        # Añade el sucesor al conjunto de visitados
+        states_visited.add(next_state)
+        # Apila el sucesor
+        stack.push(next_state)
+        # Guarda el camino inverso desde el sucesor al estado actual y la acción realizada
+        back_track[next_state] = (curr_state, action)
 
-        if problem.isGoalState(curr_state):
-            goal_state = curr_state
-            break
+      # Si el estado actual es el objetivo, lo guarda y termina el bucle
+      if problem.isGoalState(curr_state):
+        goal_state = curr_state
+        break
 
+    # Si se encontró el estado objetivo, reconstruye el camino desde el inicio hasta el objetivo
     if goal_state is not None:
-        actions = util.Queue()
-        curr_state = goal_state
-        while curr_state != start_state:
-            curr_state, action = back_track[curr_state]
-            actions.push(action)
+      # Crea una cola vacía para almacenar las acciones
+      actions = util.Queue()
+      # Asigna el estado actual al objetivo
+      curr_state = goal_state
+      # Repite hasta que el estado actual sea el inicial
+      while curr_state != start_state:
+        # Obtiene el estado anterior y la acción desde el diccionario de camino inverso
+        curr_state, action = back_track[curr_state]
+        # Encola la acción al principio de la cola
+        actions.push(action)
 
-        return actions.list
+      # Devuelve la lista de acciones
+      return actions.list
+
+    # Si no se encontró el estado objetivo, devuelve una lista vacía
     return []
 
 
-
-    util.raise_method_not_defined()
-
-
 def breadthFirstSearch(problem: SearchProblem):
-    """Search the shallowest nodes in the search tree first."""
+    """Search the nearest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raise_method_not_defined()
+    start_state = problem.getStartState()
+    # Crea una cola vacía para almacenar los estados a visitar
+    queue = util.Queue()
+    # Encola el estado inicial
+    queue.push(start_state)
+
+    # Crea un diccionario vacío para almacenar el camino inverso
+    back_track = {}
+
+    # Crea un conjunto vacío para almacenar los estados visitados
+    states_visited = {start_state}
+
+    # Crea una variable para almacenar el estado objetivo
+    goal_state = None
+
+    # Repite hasta que la cola esté vacía o se encuentre el estado objetivo
+    while not queue.isEmpty() and goal_state is None:
+      # Desencola el primer estado de la cola
+      curr_state = queue.pop()
+
+      # Obtiene los sucesores del estado actual
+      successors = problem.getSuccessors(curr_state)
+      # Recorre los sucesores del estado actual
+      for next_state, action, _ in successors:
+        # Si el sucesor ya está visitado, lo ignora
+        if next_state in states_visited:
+          continue
+        # Añade el sucesor al conjunto de visitados
+        states_visited.add(next_state)
+        # Encola el sucesor
+        queue.push(next_state)
+        # Guarda el camino inverso desde el sucesor al estado actual y la acción realizada
+        back_track[next_state] = (curr_state, action)
+
+      # Si el estado actual es el objetivo, lo guarda y termina el bucle
+      if problem.isGoalState(curr_state):
+        goal_state = curr_state
+        break
+
+    # Si se encontró el estado objetivo, reconstruye el camino desde el inicio hasta el objetivo
+    if goal_state is not None:
+      # Crea una pila vacía para almacenar las acciones
+      actions = util.Queue()
+      # Asigna el estado actual al objetivo
+      curr_state = goal_state
+      # Repite hasta que el estado actual sea el inicial
+      while curr_state != start_state:
+        # Obtiene el estado anterior y la acción desde el diccionario de camino inverso
+        curr_state, action = back_track[curr_state]
+        # Apila la acción
+        actions.push(action)
+
+      # Devuelve la lista de acciones
+      return actions.list
+
+    # Si no se encontró el estado objetivo, devuelve una lista vacía
+    return []
 
 
 def uniformCostSearch(problem: SearchProblem):
@@ -148,11 +224,72 @@ def nullHeuristic(state, problem: SearchProblem = None):
     """
     return 0
 
+def manhattanHeuristic(position, problem, info={}):
+    """The Manhattan distance heuristic for a PositionSearchProblem"""
+    xy1 = position
+    xy2 = problem.goal
+    return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
 
 def aStarSearch(problem: SearchProblem, heuristic = nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raise_method_not_defined()
+    start_state = problem.getStartState()
+    cost_dict = { start_state: 0 }
+
+    # use the priority queue without function queue.push((start_state, [], 0), 0) # (state, actions, cost), priority
+    queue = util.PriorityQueue()
+    # Diccionario para reconstruir el camino tomado
+    back_track = {}
+
+    # Iniciamos el queue con el estado inicial y prioridad 0
+    queue.push(start_state, 0)
+    states_visited = {start_state}
+    goal_state = None
+
+    while not queue.isEmpty() and goal_state is None:
+        parent = queue.pop()
+        children = problem.getSuccessors(parent)
+
+        for next_state, action, step_cost in children:
+            # Si ya visitamos el estado entonces nos lo saltamos
+            if next_state in states_visited:
+                continue
+            
+            # Calcular G(N) donde N es el hijo actual y g(n)
+            # es el costo de llegar del inicio al hijo
+            cost_parent = cost_dict[parent]
+            curr_cost = step_cost + cost_parent
+
+            # Calcular H(N) donde N es el hijo actual y h(n)
+            # es el costo heuristico del hijo al final
+            curr_heur = heuristic(next_state, problem)
+
+            # Guarda el costo total hasta el nodo actual
+            cost_dict[next_state] = curr_cost
+
+            # Calcula la prioridad / f(n)
+            priority = curr_cost + curr_heur
+            queue.update(next_state, priority)
+            
+            # Guarda el hijo en los estados visitados
+            states_visited.add(next_state)
+
+            # Guarda el camino inverso desde el sucesor al estado actual y la acción realizada
+            back_track[next_state] = (parent, action)
+
+        if problem.isGoalState(parent):
+            goal_state = parent
+            break
+
+    if goal_state is not None:
+        actions = util.Queue()
+        parent = goal_state
+        while parent != start_state:
+            parent, action = back_track[parent]
+            actions.push(action)
+
+        return actions.list
+    return []
 
 
 # Abbreviations
